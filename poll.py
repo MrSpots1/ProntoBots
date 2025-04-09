@@ -110,18 +110,32 @@ tech_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/h
 toys_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/heads/master/en/todo/toys_and_games.json"
 misc_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/heads/master/en/todo/uncategorized.json"
 
+
 async def listen_for_commands():
     global PROCESS_MESSAGES
+    print("Type 'on' to enable or 'off' to disable message processing. Type 'exit' to quit.")
+
     while True:
-        command = input("Type 'on' to enable or 'off' to disable message processing: ").strip().lower()
-        if command == "on":
-            PROCESS_MESSAGES = True
-            print("Message processing is enabled.")
-        elif command == "off":
-            PROCESS_MESSAGES = False
-            print("Message processing is disabled.")
-        else:
-            print("Invalid command. Please type 'on' or 'off'.")
+        print("> ", end="", flush=True)  # Prompt without blocking
+        try:
+            # Use asyncio to read from the standard input asynchronously
+            command = await asyncio.get_event_loop().run_in_executor(None, input)
+            command = command.strip().lower()
+
+            if command == "on":
+                PROCESS_MESSAGES = True
+                print("Message processing is enabled.")
+            elif command == "off":
+                PROCESS_MESSAGES = False
+                print("Message processing is disabled.")
+            elif command == "exit":
+                print("Exiting command listener.")
+                break
+            else:
+                print("Invalid command. Please type 'on', 'off', or 'exit'.")
+        except Exception as e:
+            print(f"Error occurred: {e}")
+
 
 # Download Bad Words List
 def download_wordlist(url):
