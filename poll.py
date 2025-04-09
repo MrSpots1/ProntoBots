@@ -92,7 +92,6 @@ rules = []
 if (main_bubble_ID == "3832006"):
     adminrules.append("https://docs.google.com/document/d/1pYLhxWIXCVS49JT3aBVMjMlXQmPQbxkgjQjEXj87dSA/edit?tab=t.0")
     rules.append("https://docs.google.com/document/d/17PhM0JfKHGlqzJ0OBohS4GQEAuc-ea0accY-lGU6zzs/edit?usp=sharing")
-# Bad Words List URL
 arts_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/heads/master/en/todo/arts_and_literature.json"
 ent_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/heads/master/en/todo/entertainment.json"
 food_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/heads/master/en/todo/food_and_drink.json"
@@ -110,30 +109,7 @@ toys_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/h
 misc_url = "https://raw.githubusercontent.com/el-cms/Open-trivia-database/refs/heads/master/en/todo/uncategorized.json"
 
 
-async def listen_for_commands():
-    global PROCESS_MESSAGES
-    print("Type 'on' to enable or 'off' to disable message processing. Type 'exit' to quit.")
 
-    while True:
-        print("> ", end="", flush=True)  # Prompt without blocking
-        try:
-            # Use asyncio to read from the standard input asynchronously
-            command = await asyncio.get_event_loop().run_in_executor(None, input)
-            command = command.strip().lower()
-
-            if command == "on":
-                PROCESS_MESSAGES = True
-                print("Message processing is enabled.")
-            elif command == "off":
-                PROCESS_MESSAGES = False
-                print("Message processing is disabled.")
-            elif command == "exit":
-                print("Exiting command listener.")
-                break
-            else:
-                print("Invalid command. Please type 'on', 'off', or 'exit'.")
-        except Exception as e:
-            print(f"Error occurred: {e}")
 
 
 # Download Bad Words List
@@ -513,7 +489,6 @@ if user_id in bubble_owners:
     is_bot_owner = True
 bubbles = getUsersBubbles(accesstoken)
 dms = get_dms(bubbleOverviewJSONPath)
-"""[{'id': 3858071, 'title': 'Inara Miyasaka'}, {'id': 3822074, 'title': 'Nathan Muruganantham'}, {'id': 3809608, 'title': 'Sofya Korzh'}, {'id': 3300546, 'title': 'Vajra Vanukuri'}, {'id': 3333256, 'title': 'Weston Yoo'}]"""
 global stored_dms
 stored_dms = []
 bubble_sid = bubble_info["bubble"]["channelcode"]
