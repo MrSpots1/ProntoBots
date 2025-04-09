@@ -8,7 +8,7 @@ import requests
 import sys
 import uuid
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import time
 import requests, logging
 from datetime import datetime
@@ -46,6 +46,8 @@ headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {accesstoken}",
 }
+global last_thing
+last_thing = datetime.min
 global max_number
 max_number = 0
 global warning_count
@@ -254,126 +256,138 @@ async def check_for_staged_events():
 # Check for any commands in the message
 def check_for_commands(msg_text_tall, user_sender_id):
     """Check for any commands in the message."""
-    chat = get_dm_or_create(user_sender_id)['bubble']['id']
+
     
     msg_text = msg_text_tall.lower()
-    
+    chat = get_dm_or_create(user_sender_id)['bubble']['id']
     
     command = msg_text[1:].split()
     command2 = msg_text_tall[1:].split()
     if msg_text.startswith("!roll"):
-        if command.__len__() == 2:
-            match = re.fullmatch(r'(\d+)d(\d+)', command[1])
-            if match:
-                num_dice, sides = map(int, match.groups())
-                if user_sender_id == user_id and num_dice == 1 and sides == 500:
-                    send_message("Rolling... 500 = 500", main_bubble_ID, media)
-                    return
+        if datetime.now() - last_thing >= timedelta(seconds=5):
+            last_thing == datetime.now
+            if command.__len__() == 2:
+                match = re.fullmatch(r'(\d+)d(\d+)', command[1])
+                if match:
+                    num_dice, sides = map(int, match.groups())
+                    if user_sender_id == user_id and num_dice == 1 and sides == 500:
+                        send_message("Rolling... 500 = 500", main_bubble_ID, media)
+                        return
 
-                if (num_dice < 1 or sides < 1):
-                    send_message("Invalid input. Number of dice and sides must be greater than 0.", chat, media)
+                    if (num_dice < 1 or sides < 1):
+                        send_message("Invalid input. Number of dice and sides must be greater than 0.", chat, media)
+                        return
+                    if (num_dice > 500 or sides > 1000000):
+                        send_message("Invalid input. Number of dice must be less than 500 and sides must be less than 1000000.", chat, media)
+                        return
+                    rolls = [random.randint(1, sides) for _ in range(num_dice)]
+                    total = sum(rolls)
+                    rolls_str = " + ".join(map(str, rolls))
+                    message = f"Rolling... {rolls_str} = {total}"
+                    if message.__len__() > 500:
+                        send_message(message, chat, media)
+                    else:
+                        send_message(message, main_bubble_ID, media)
                     return
-                if (num_dice > 500 or sides > 1000000):
-                    send_message("Invalid input. Number of dice must be less than 500 and sides must be less than 1000000.", chat, media)
-                    return
-                rolls = [random.randint(1, sides) for _ in range(num_dice)]
-                total = sum(rolls)
-                rolls_str = " + ".join(map(str, rolls))
-                message = f"Rolling... {rolls_str} = {total}"
-                if message.__len__() > 500:
-                    send_message(message, chat, media)
                 else:
-                    send_message(message, main_bubble_ID, media)
-                return
-            else: 
+                    send_message("Invalid format. Use !roll NdM (e.g., !roll 2d6)", chat, media)
+                    return
+            else:
                 send_message("Invalid format. Use !roll NdM (e.g., !roll 2d6)", chat, media)
-                return
-        else:
-            send_message("Invalid format. Use !roll NdM (e.g., !roll 2d6)", chat, media)
     if msg_text.startswith("!flip"):
-        
-        flip = random.choice(["Heads", "Tails"])
-        send_message(f"I got... {flip}!", main_bubble_ID, media)
-        return
+        if datetime.now() - last_thing >= timedelta(seconds=5):
+            last_thing == datetime.now
+
+            flip = random.choice(["Heads", "Tails"])
+            send_message(f"I got... {flip}!", main_bubble_ID, media)
+            return
     global triviamaster
 
     if msg_text.startswith("!trivia"):
-        global doing_trivia
-        if doing_trivia == 0:
-            doing_trivia = 1
-            triviamaster = user_sender_id
-            print(triviamaster)
-            randomint = random.randint(0, all_list.__len__() - 2)
-            question = all_list[randomint]
-            global quest
-            quest = json.loads(question[:-1])
-            capquest = quest['question'].capitalize()
-            send_message(f"Question: {capquest}", main_bubble_ID, media)
-            print(capquest)
-            
-        else:
-            send_message("You cant start anouther trivia right now, one is already running.", chat, media)
-    if msg_text.startswith("!reveal"):
-        if doing_trivia == 1:
-            if user_sender_id in bubble_owners or user_sender_id == triviamaster:
-                doing_trivia = 0
-                answers = ""
-                for i in range(quest['answers'].__len__()):
-                    answers += quest['answers'][i].capitalize()
-                    print(quest['answers'].__len__())
-                    print(i)
-                    if i+1 != quest['answers'].__len__():
-                        answers += ", "
-                send_message(f"Answer(s): {answers}", main_bubble_ID, media)
-            else:
-                send_message("You dont have permission to reveal the trivia.", chat, media)
-        else:
-            send_message("There is no trivia right now.", chat, media)
-    if msg_text.startswith("!numbergame"):
-        if command.__len__() == 2:
-            global doing_guess_the_number
-            if doing_guess_the_number == 0:
+        if datetime.now() - last_thing >= timedelta(seconds=5):
+            last_thing == datetime.now
+            global doing_trivia
+            if doing_trivia == 0:
+                doing_trivia = 1
+                triviamaster = user_sender_id
+                print(triviamaster)
+                randomint = random.randint(0, all_list.__len__() - 2)
+                question = all_list[randomint]
+                global quest
+                quest = json.loads(question[:-1])
+                capquest = quest['question'].capitalize()
+                send_message(f"Question: {capquest}", main_bubble_ID, media)
+                print(capquest)
 
-                global max_number
-                global correctnumber
-                try:
-                    max_number = int(command[1])
-                except:
-                    send_message("Invalid format. Use !numbergame M (e.g., !numbergame 212)", chat, media)
-                    return
-                if max_number < 1 or max_number > 10000:
-                    send_message("Invalid max. Your maximum number must not be less then 1 or greater then 10000", chat, media)
-                    return
-                doing_guess_the_number = 1
-                correctnumber = random.randint(0, max_number+1)
-                send_message("Ok! I have chosen my number. User !guess N to guess.", main_bubble_ID, [])
             else:
-                send_message("You can't start another guess the number game right now, one is already running.", chat, media)
-        else:
-            send_message("Invalid format. Use !numbergame M (e.g., !numbergame 212)", chat, media)
+                send_message("You cant start anouther trivia right now, one is already running.", chat, media)
+    if msg_text.startswith("!reveal"):
+        if datetime.now() - last_thing >= timedelta(seconds=5):
+            last_thing == datetime.now
+            if doing_trivia == 1:
+                if user_sender_id in bubble_owners or user_sender_id == triviamaster:
+                    doing_trivia = 0
+                    answers = ""
+                    for i in range(quest['answers'].__len__()):
+                        answers += quest['answers'][i].capitalize()
+                        print(quest['answers'].__len__())
+                        print(i)
+                        if i+1 != quest['answers'].__len__():
+                            answers += ", "
+                    send_message(f"Answer(s): {answers}", main_bubble_ID, media)
+                else:
+                    send_message("You dont have permission to reveal the trivia.", chat, media)
+            else:
+                send_message("There is no trivia right now.", chat, media)
+    if msg_text.startswith("!numbergame"):
+        if datetime.now() - last_thing >= timedelta(seconds=5):
+            last_thing == datetime.now
+            if command.__len__() == 2:
+                global doing_guess_the_number
+                if doing_guess_the_number == 0:
+
+                    global max_number
+                    global correctnumber
+                    try:
+                        max_number = int(command[1])
+                    except:
+                        send_message("Invalid format. Use !numbergame M (e.g., !numbergame 212)", chat, media)
+                        return
+                    if max_number < 1 or max_number > 10000:
+                        send_message("Invalid max. Your maximum number must not be less then 1 or greater then 10000", chat, media)
+                        return
+                    doing_guess_the_number = 1
+                    correctnumber = random.randint(0, max_number+1)
+                    send_message("Ok! I have chosen my number. User !guess N to guess.", main_bubble_ID, [])
+                else:
+                    send_message("You can't start another guess the number game right now, one is already running.", chat, media)
+            else:
+                send_message("Invalid format. Use !numbergame M (e.g., !numbergame 212)", chat, media)
     if msg_text.startswith("!guess"):
-        if command.__len__() == 2:
-            if doing_guess_the_number == 1:
-                try:
-                    guess = int(command[1])
-                except:
-                    send_message("Invalid format. Use !guess N (e.g., !guess 212)", chat, media)
-                    return
-                if (guess < 1 or guess > max_number):
-                    send_message("Invalid guess. Your guess must be more then 0 and less then the max number", chat, media)
-                    return
-                if guess == correctnumber:
-                    send_message(f"Correct! The answer was {guess}!", main_bubble_ID, media)
-                    doing_guess_the_number = 0
-                    return
-                elif guess > correctnumber:
-                    send_message(f"{guess} is too high!", main_bubble_ID, media)
-                elif guess < correctnumber:
-                    send_message(f"{guess} is too low!", main_bubble_ID, media)
+        if datetime.now() - last_thing >= timedelta(seconds=5):
+            last_thing == datetime.now
+            if command.__len__() == 2:
+                if doing_guess_the_number == 1:
+                    try:
+                        guess = int(command[1])
+                    except:
+                        send_message("Invalid format. Use !guess N (e.g., !guess 212)", chat, media)
+                        return
+                    if (guess < 1 or guess > max_number):
+                        send_message("Invalid guess. Your guess must be more then 0 and less then the max number", chat, media)
+                        return
+                    if guess == correctnumber:
+                        send_message(f"Correct! The answer was {guess}!", main_bubble_ID, media)
+                        doing_guess_the_number = 0
+                        return
+                    elif guess > correctnumber:
+                        send_message(f"{guess} is too high!", main_bubble_ID, media)
+                    elif guess < correctnumber:
+                        send_message(f"{guess} is too low!", main_bubble_ID, media)
+                else:
+                    send_message("There is no guess the number game right now.", chat, media)
             else:
-                send_message("There is no guess the number game right now.", chat, media)
-        else:
-            send_message("Invalid format. Use !guess N (e.g., !guess 212)", chat, media)
+                send_message("Invalid format. Use !guess N (e.g., !guess 212)", chat, media)
 
         
     """if user_sender_id not in bubble_owners:
