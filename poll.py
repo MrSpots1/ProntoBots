@@ -91,6 +91,10 @@ global adminrules
 adminrules = []
 global rules
 rules = []
+
+global banished
+banished = []
+
 if (main_bubble_ID == "3832006"):
     adminrules.append("https://docs.google.com/document/d/1pYLhxWIXCVS49JT3aBVMjMlXQmPQbxkgjQjEXj87dSA/edit?tab=t.0")
     rules.append("https://docs.google.com/document/d/17PhM0JfKHGlqzJ0OBohS4GQEAuc-ea0accY-lGU6zzs/edit?usp=sharing")
@@ -241,15 +245,15 @@ def process_message(msg_text, user_firstname, user_lastname, timestamp, msg_medi
                 PROCESS_MESSAGES = False
     if not PROCESS_MESSAGES:
         return
-
-    matches = list(filter(lambda row: row[0] == user_id_websocket, warning_count))
-    if matches.__len__() == 0:
-        warning_count.append([user_id_websocket, 0])
+    if user_id_websocket not in banished:
         matches = list(filter(lambda row: row[0] == user_id_websocket, warning_count))
-    msg_text_lower = msg_text.lower()
-    sent_user_id = user_id_websocket  # This would be the actual user ID for the message sender
-    # Check for Commands in the message
-    check_for_commands(msg_text, sent_user_id)
+        if matches.__len__() == 0:
+            warning_count.append([user_id_websocket, 0])
+            matches = list(filter(lambda row: row[0] == user_id_websocket, warning_count))
+        msg_text_lower = msg_text.lower()
+        sent_user_id = user_id_websocket  # This would be the actual user ID for the message sender
+        # Check for Commands in the message
+        check_for_commands(msg_text, sent_user_id)
 
 async def check_for_staged_events():
     await asyncio.sleep(300)  # Allow some time for the websocket to establish and receive messages
@@ -263,6 +267,14 @@ def check_for_commands(msg_text_tall, user_sender_id):
     
     command = msg_text[1:].split()
     command2 = msg_text_tall[1:].split()
+    if msg_text.startswith("!banish") and user_sender_id in bubble_owners:
+        targetuser = re.search(r"<@(\d+)>", command[1])
+        targetuserint = int(targetuser.group(1))
+        banished.append(targetuserint)
+    if msg_text.startswith("!unbanish") and user_sender_id in bubble_owners:
+        targetuser = re.search(r"<@(\d+)>", command[1])
+        targetuserint = int(targetuser.group(1))
+        banished.remove(targetuserint)
     if msg_text.startswith("!roll"):
         if datetime.now() - last_thing >= timedelta(seconds=5):
             last_thing == datetime.now
