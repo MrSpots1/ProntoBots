@@ -238,14 +238,14 @@ def process_message(msg_text, user_firstname, user_lastname, timestamp, msg_medi
     global PROCESS_MESSAGES
     if msg_text.startswith("!bot"):
         command = msg_text[1:].split()
-        if user_id_websocket == int_user_id:
+        if user_id_websocket in bubble_owners or user_id_websocket == int_user_id:
             if command[1] == "on":
                 PROCESS_MESSAGES = True
             elif command[1] == "off":
                 PROCESS_MESSAGES = False
     if not PROCESS_MESSAGES:
         return
-    if user_id_websocket not in banished:
+    if user_id_websocket not in banished or user_id_websocket == int_user_id:
         matches = list(filter(lambda row: row[0] == user_id_websocket, warning_count))
         if matches.__len__() == 0:
             warning_count.append([user_id_websocket, 0])
@@ -267,11 +267,11 @@ def check_for_commands(msg_text_tall, user_sender_id):
     
     command = msg_text[1:].split()
     command2 = msg_text_tall[1:].split()
-    if msg_text.startswith("!banish") and user_sender_id in bubble_owners:
+    if msg_text.startswith("!banish") and (user_sender_id in bubble_owners or user_sender_id == int_user_id):
         targetuser = re.search(r"<@(\d+)>", command[1])
         targetuserint = int(targetuser.group(1))
         banished.append(targetuserint)
-    if msg_text.startswith("!unbanish") and user_sender_id in bubble_owners:
+    if msg_text.startswith("!unbanish") and (user_sender_id in bubble_owners or user_sender_id == int_user_id):
         targetuser = re.search(r"<@(\d+)>", command[1])
         targetuserint = int(targetuser.group(1))
         banished.remove(targetuserint)
