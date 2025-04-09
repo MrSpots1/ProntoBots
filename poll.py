@@ -230,6 +230,13 @@ async def main(bubble_id, bubble_sid):
 # Mod Bot Logic for Processing Messages
 def process_message(msg_text, user_firstname, user_lastname, timestamp, msg_media, user_id_websocket):
     global PROCESS_MESSAGES
+    if msg_text.startswith("!bot"):
+        command = msg_text[1:].split()
+        if user_id_websocket == int_user_id:
+            if command[1] == "on":
+                PROCESS_MESSAGES = True
+            elif command[1] == "off":
+                PROCESS_MESSAGES = False
     if not PROCESS_MESSAGES:
         return
 
@@ -289,6 +296,7 @@ def check_for_commands(msg_text_tall, user_sender_id):
         send_message(f"I got... {flip}!", main_bubble_ID, media)
         return
     global triviamaster
+
     if msg_text.startswith("!trivia"):
         global doing_trivia
         if doing_trivia == 0:
@@ -482,7 +490,6 @@ async def main_loop():
     print(f"HTTP server running on port {port}")
     await site.start()
 
-    asyncio.create_task(listen_for_commands())
     # Run the WebSocket logic
     await main(main_bubble_ID, bubble_sid)
 if user_id in bubble_owners:
