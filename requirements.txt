@@ -7,3 +7,4 @@ dataclasses~=0.6
 annotated-types~=0.7.0
 networkx~=3.4.2
 aiohttp~=3.11.16
+wonderwords~=2.2.0

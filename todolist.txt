@@ -1,0 +1,34 @@
+ok ideas of things to add:
+
+idea:
+!scramble
+gives a scambled word
+first person to write the word unscrambled gets a cookie
+
+thinkings:
+i need a random sentence generater....
+and i need a new command to reveal the answer, like !unscramble
+and i need a new command to guess the answer, like !guess
+ooh i need to rework !guess so its !guess number ___ or !guess scramble ____ ___ ____ ___
+
+
+idea:
+!shift N ___ ___ ___ ___
+does a ceaser cipher shift for N places of the remaining text
+
+thinkings:
+ok ceaser shift, not that hard....
+ooh but also i could have a command, !codebreak ___ ___ ___
+    - automatically tries to solve the cipher like for c++
+
+idea:
+!wordle
+plays wordle
+
+thinkings:
+!wordle start
+    -starts a game
+!wordle end
+    -cancels a game (can be used only by chat owners), ends the game
+!wordle
+    -pastes the current wordle progress
